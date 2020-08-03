@@ -1,0 +1,37 @@
+#! /bin/bash
+
+cd /iotp/data/mysql
+
+tables=("123" "publicdb" "global")
+
+for t in ${tables[@]}; do
+
+#echo $t
+
+ls -l $t | awk '{
+	sharp_index = index($9, "#")
+	if ( sharp_index != 0 ) {
+		t_name = substr($9, 0, sharp_index)
+	} else {
+		t_name = substr($9, 0, index($9, "."))
+	}
+	if ( index(t_name, "task_") != 0 ) {
+		t_map["task"] += $5
+	} else if ( index(t_name, "sundray") != 0 || index(t_name, "867d") != 0) {
+                t_map["old_trend"] += $5
+        } else {
+                t_map[t_name] += $5
+        }
+}END{
+	for (t in t_map) {
+		printf("%s\t%s\n", t, t_map[t])
+	}
+}' | sort
+
+done
+
+echo -e '\n'
+echo -e '\n'
+echo -e '\n'
+
+ls -l mysql-bin.* | awk 'BEGIN{s=0}{s+=$5}END{printf("%.f\n", s)}'
